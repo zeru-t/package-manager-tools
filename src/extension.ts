@@ -1,21 +1,13 @@
-import { ExtensionContext, StatusBarAlignment, commands, window } from 'vscode';
+import { ExtensionContext } from 'vscode';
+import { createStatusBarItems } from './status-bar';
+import { initializePackageManagers } from './package-manager';
 
-export function activate({ subscriptions }: ExtensionContext) {
 
-	const terminalStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 1001);
-	terminalStatusBarItem.text = '$(terminal-powershell) Open Terminal';
-	terminalStatusBarItem.tooltip = 'Open Terminal';
-	terminalStatusBarItem.command = 'PackageManagerTools.OpenTerminal';
-	subscriptions.push(terminalStatusBarItem);
-	terminalStatusBarItem.show();
+export async function activate(context: ExtensionContext) {
 
-	commands.registerCommand('PackageManagerTools.OpenTerminal', () => {
-		if (window.activeTerminal)
-			window.activeTerminal.show();
-		else
-			window.createTerminal();
-		commands.executeCommand('workbench.action.terminal.focus');
-	});
+	const { npm, pnpm, bun, multiple } = await initializePackageManagers();
+	createStatusBarItems(context.subscriptions, npm, pnpm, bun, multiple);
+
 }
 
 export function deactivate() {}
