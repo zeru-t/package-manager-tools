@@ -1,7 +1,9 @@
 import { workspace, window } from 'vscode';
+import { toggleTerminal } from './terminal';
 
 
 let packageManagers: PackageManager;
+let packageManagersNames: string|string[];
 
 export async function initializePackageManagers() {
 
@@ -14,13 +16,46 @@ export async function initializePackageManagers() {
 		multiple: allLockFiles.length > 1,
 	};
 
-	return packageManagers;
+	const pkgManagers = Object.entries(packageManagers)
+			.filter(([_, exists]) => exists)
+			.map(([name]) => name);
+	packageManagersNames = pkgManagers.length === 1 ? pkgManagers[0] : pkgManagers;
 }
 
-export function installAllPackages() {
+export function installPackage(...[args]: any[]) {
 	if (!packageManagers) return;
-	const { npm, pnpm, bun } = packageManagers;
-	window.activeTerminal?.sendText('npm install\u000D');
+	const { npm, pnpm, bun, multiple } = packageManagers;
+	toggleTerminal();
+	if (multiple) {
+		//TODO: move package managers logic to status bar
+	}
+	else {
+		const global = args ? '-g ' : '';
+		const runScript = args === null || args === undefined;
+		window.activeTerminal?.sendText(`${packageManagersNames[0]} install ${global}`, runScript);
+	}
+}
+
+export function removePackage() {
+	if (!packageManagers) return;
+	const { npm, pnpm, bun, multiple } = packageManagers;
+	if (multiple) {
+
+	}
+	else {
+		window.activeTerminal?.sendText('npm remove ');
+	}
+}
+
+export function listPackages() {
+	if (!packageManagers) return;
+	const { npm, pnpm, bun, multiple } = packageManagers;
+	if (multiple) {
+
+	}
+	else {
+		window.activeTerminal?.sendText('npm list ');
+	}
 }
 
 
