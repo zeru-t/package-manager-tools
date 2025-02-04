@@ -29,25 +29,22 @@ export function createStatusBarItems(subscriptions: { dispose(): any }[]) {
 	}
 
 	function addInstall() {
-		const markdownString = new MarkdownString('', true);
-		markdownString.supportHtml = true;
-		markdownString.isTrusted = true;
-		markdownString.appendMarkdown(`# ![Image](https://raw.githubusercontent.com/npm/logos/refs/heads/master/npm%20square/npm-16.png)`);
-		markdownString.appendMarkdown('\n\n');
-		markdownString.appendMarkdown(`## [$(globe)](command:${installPackageCommandId}?[true] "Install Global")`);
-		markdownString.appendMarkdown('\n\n');
-		markdownString.appendMarkdown(`## [$(folder-opened)](command:${installPackageCommandId}?[false] "Install Local")`);
-		markdownString.appendMarkdown('\n---\n');
-
-		markdownString.appendMarkdown(`# ![Image](https://raw.githubusercontent.com/npm/logos/refs/heads/master/npm%20square/npm-16.png)`);
-		markdownString.appendMarkdown('\n\n');
-		markdownString.appendMarkdown(`## [$(globe)](command:${installPackageCommandId}?[true] "Install Global")`);
-		markdownString.appendMarkdown('\n\n');
-		markdownString.appendMarkdown(`## [$(folder-opened)](command:${installPackageCommandId}?[false] "Install Local")`);
+		const npm = '<h1>![Image](https://raw.githubusercontent.com/zeru-t/package-manager-tools/refs/heads/main/icons/npm.png "npm")&nbsp;&nbsp;</h1>';
+		const bun = '<h1>![Image](https://raw.githubusercontent.com/zeru-t/package-manager-tools/refs/heads/main/icons/bun.png "bun")&nbsp;&nbsp;</h1>';
+		const installLocal = '<h2>[$(folder-opened)](command:${installPackageCommandId}?[false] "Install Local")&nbsp;&nbsp;</h2>';
+		const installGlobal = '<h2>[$(globe)](command:${installPackageCommandId}?[true] "Install Global")&nbsp;&nbsp;</h2>';
+		const tooltip = new MarkdownString('', true);
+		tooltip.supportHtml = true;
+		tooltip.isTrusted = true;
+		tooltip.appendMarkdown(`| ${npm} | ${installLocal} | ${installGlobal} |\n`);
+		tooltip.appendMarkdown(`| ------- | ------- | ------- |\n`);
+		tooltip.appendMarkdown('\n---\n');
+		tooltip.appendMarkdown(`| ${bun} | ${installLocal} | ${installGlobal} |\n`);
+		tooltip.appendMarkdown(`| ------- | ------- | ------- |\n`);
 
 		const installPackageStatusBarItem = createStatusBarItem(
 			'$(archive) Install',
-			markdownString,
+			tooltip,
 			installPackageCommandId, 2
 		);
 		subscriptions.push(installPackageStatusBarItem);
@@ -69,20 +66,9 @@ export function createStatusBarItems(subscriptions: { dispose(): any }[]) {
 	}
 
 	function addList() {
-		const tooltip = new MarkdownString('', true);
-		tooltip.supportHtml = true;
-		tooltip.isTrusted = true;
-		const logo = '![Image](https://raw.githubusercontent.com/npm/logos/refs/heads/master/npm%20square/npm-16.png)';
-		const bun = '![Image](icons/bun.png)';
-		const installLocal = '[$(folder-opened)](command:${installPackageCommandId}?[false] "Install Local")';
-		const installGlobal = '[$(globe)](command:${installPackageCommandId}?[true] "Install Global")';
-		tooltip.appendMarkdown(`| <h1>${logo}</h1> | <h1>&nbsp;&nbsp;</h1> | <h1>${bun}</h1> |\n`);
-		tooltip.appendMarkdown(`| ------- | ------- | ------- |\n`);
-		tooltip.appendMarkdown(`| <h1>${installLocal}</h1> | <h1>&nbsp;&nbsp;</h1> | <h1>${installLocal}</h1> |\n`);
-		tooltip.appendMarkdown(`| <h1>${installGlobal}</h1> | <h1>&nbsp;&nbsp;</h1> | <h1>${installGlobal}</h1> |\n`);
 		const listPackageStatusBarItem = createStatusBarItem(
 			'$(list-tree) List',
-			tooltip,
+			'List Packages',
 			listPackageCommandId, 3
 		);
 		subscriptions.push(listPackageStatusBarItem);
