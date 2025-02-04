@@ -16,10 +16,9 @@ export async function initializePackageManagers() {
 		multiple: allLockFiles.length > 1,
 	};
 
-	const pkgManagers = Object.entries(packageManagers)
+	packageManagersNames = Object.entries(packageManagers)
 			.filter(([_, exists]) => exists)
 			.map(([name]) => name);
-	packageManagersNames = pkgManagers.length === 1 ? pkgManagers[0] : pkgManagers;
 }
 
 export function installPackage(...[args]: any[]) {

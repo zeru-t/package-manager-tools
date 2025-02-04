@@ -29,12 +29,12 @@ export function createStatusBarItems(subscriptions: { dispose(): any }[]) {
 	}
 
 	function addInstall() {
-		const markdownString = new MarkdownString();
+		const markdownString = new MarkdownString('', true);
 		markdownString.supportHtml = true;
 		markdownString.isTrusted = true;
-		markdownString.appendMarkdown(`[Install Package](command:${installPackageCommandId}?[false])\n---`);
+		markdownString.appendMarkdown(`[$(globe)](command:${installPackageCommandId}?[true] "Install Global")\n---`);
 		markdownString.appendMarkdown('\n---\n');
-		markdownString.appendMarkdown(`[Install Global Package](command:${installPackageCommandId}?[true])\n---`);
+		markdownString.appendMarkdown(`[$(folder-opened)](command:${installPackageCommandId}?[false] "Install Local")\n---`);
 
 		const installPackageStatusBarItem = createStatusBarItem(
 			'$(archive) Install',
