@@ -32,9 +32,18 @@ export function createStatusBarItems(subscriptions: { dispose(): any }[]) {
 		const markdownString = new MarkdownString('', true);
 		markdownString.supportHtml = true;
 		markdownString.isTrusted = true;
-		markdownString.appendMarkdown(`[$(globe)](command:${installPackageCommandId}?[true] "Install Global")\n---`);
+		markdownString.appendMarkdown(`# ![Image](https://raw.githubusercontent.com/npm/logos/refs/heads/master/npm%20square/npm-16.png)`);
+		markdownString.appendMarkdown('\n\n');
+		markdownString.appendMarkdown(`## [$(globe)](command:${installPackageCommandId}?[true] "Install Global")`);
+		markdownString.appendMarkdown('\n\n');
+		markdownString.appendMarkdown(`## [$(folder-opened)](command:${installPackageCommandId}?[false] "Install Local")`);
 		markdownString.appendMarkdown('\n---\n');
-		markdownString.appendMarkdown(`[$(folder-opened)](command:${installPackageCommandId}?[false] "Install Local")\n---`);
+
+		markdownString.appendMarkdown(`# ![Image](https://raw.githubusercontent.com/npm/logos/refs/heads/master/npm%20square/npm-16.png)`);
+		markdownString.appendMarkdown('\n\n');
+		markdownString.appendMarkdown(`## [$(globe)](command:${installPackageCommandId}?[true] "Install Global")`);
+		markdownString.appendMarkdown('\n\n');
+		markdownString.appendMarkdown(`## [$(folder-opened)](command:${installPackageCommandId}?[false] "Install Local")`);
 
 		const installPackageStatusBarItem = createStatusBarItem(
 			'$(archive) Install',
@@ -60,9 +69,20 @@ export function createStatusBarItems(subscriptions: { dispose(): any }[]) {
 	}
 
 	function addList() {
+		const tooltip = new MarkdownString('', true);
+		tooltip.supportHtml = true;
+		tooltip.isTrusted = true;
+		const logo = '![Image](https://raw.githubusercontent.com/npm/logos/refs/heads/master/npm%20square/npm-16.png)';
+		const bun = '![Image](icons/bun.png)';
+		const installLocal = '[$(folder-opened)](command:${installPackageCommandId}?[false] "Install Local")';
+		const installGlobal = '[$(globe)](command:${installPackageCommandId}?[true] "Install Global")';
+		tooltip.appendMarkdown(`| <h1>${logo}</h1> | <h1>&nbsp;&nbsp;</h1> | <h1>${bun}</h1> |\n`);
+		tooltip.appendMarkdown(`| ------- | ------- | ------- |\n`);
+		tooltip.appendMarkdown(`| <h1>${installLocal}</h1> | <h1>&nbsp;&nbsp;</h1> | <h1>${installLocal}</h1> |\n`);
+		tooltip.appendMarkdown(`| <h1>${installGlobal}</h1> | <h1>&nbsp;&nbsp;</h1> | <h1>${installGlobal}</h1> |\n`);
 		const listPackageStatusBarItem = createStatusBarItem(
 			'$(list-tree) List',
-			'List Packages',
+			tooltip,
 			listPackageCommandId, 3
 		);
 		subscriptions.push(listPackageStatusBarItem);
