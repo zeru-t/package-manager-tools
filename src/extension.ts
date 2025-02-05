@@ -6,7 +6,7 @@ import { initializePackageManagers } from './package-manager';
 export async function activate(context: ExtensionContext) {
 
 	await initializePackageManagers();
-	createStatusBarItems(context.subscriptions);
+	await createStatusBarItems(context.subscriptions);
 
 }
 

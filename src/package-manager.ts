@@ -2,28 +2,32 @@ import { workspace, window } from 'vscode';
 import { toggleTerminal } from './terminal';
 
 
-let packageManagers: PackageManager;
-let packageManagersNames: string|string[];
+let packageManagers_OLD: PackageManager;
+let packageManagers: string[];
 
 export async function initializePackageManagers() {
 
 	const allLockFiles = await workspace.findFiles('{**/package-lock.json,**/pnpm-lock.yaml,**/bun.lock*}', '**/node_modules/**');
 
-	packageManagers = {
+	packageManagers_OLD = {
 		npm: allLockFiles.some(file => file.path.includes('package')),
 		pnpm: allLockFiles.some(file => file.path.includes('pnpm')),
 		bun: allLockFiles.some(file => file.path.includes('bun')),
 		multiple: allLockFiles.length > 1,
 	};
 
-	packageManagersNames = Object.entries(packageManagers)
+	packageManagers = Object.entries(packageManagers_OLD)
 			.filter(([_, exists]) => exists)
 			.map(([name]) => name);
 }
+export function getPackageManagerNames() {
+	return packageManagers;
+}
 
 export function installPackage(...[args]: any[]) {
-	if (!packageManagers) return;
-	const { npm, pnpm, bun, multiple } = packageManagers;
+	console.log('%c📝package-manager.ts:', 'color: cyan', {args});
+	if (!packageManagers_OLD) return;
+	const { npm, pnpm, bun, multiple } = packageManagers_OLD;
 	toggleTerminal();
 	if (multiple) {
 		//TODO: move package managers logic to status bar
@@ -31,13 +35,13 @@ export function installPackage(...[args]: any[]) {
 	else {
 		const global = args ? '-g ' : '';
 		const runScript = args === null || args === undefined;
-		window.activeTerminal?.sendText(`${packageManagersNames[0]} install ${global}`, runScript);
+		window.activeTerminal?.sendText(`${packageManagers[0]} install ${global}`, runScript);
 	}
 }
 
 export function removePackage() {
-	if (!packageManagers) return;
-	const { npm, pnpm, bun, multiple } = packageManagers;
+	if (!packageManagers_OLD) return;
+	const { npm, pnpm, bun, multiple } = packageManagers_OLD;
 	if (multiple) {
 
 	}
@@ -47,8 +51,8 @@ export function removePackage() {
 }
 
 export function listPackages() {
-	if (!packageManagers) return;
-	const { npm, pnpm, bun, multiple } = packageManagers;
+	if (!packageManagers_OLD) return;
+	const { npm, pnpm, bun, multiple } = packageManagers_OLD;
 	if (multiple) {
 
 	}
