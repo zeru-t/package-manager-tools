@@ -13,7 +13,6 @@ export async function initializePackageManagers() {
 		npm: allLockFiles.some(file => file.path.includes('package')),
 		pnpm: allLockFiles.some(file => file.path.includes('pnpm')),
 		bun: allLockFiles.some(file => file.path.includes('bun')),
-		multiple: allLockFiles.length > 1,
 	};
 
 	packageManagers = Object.entries(packageManagers_OLD)
@@ -24,41 +23,38 @@ export function getPackageManagerNames() {
 	return packageManagers;
 }
 
-export function installPackage(...[args]: any[]) {
-	console.log('%c📝package-manager.ts:', 'color: cyan', {args});
-	if (!packageManagers_OLD) return;
-	const { npm, pnpm, bun, multiple } = packageManagers_OLD;
-	toggleTerminal();
-	if (multiple) {
-		//TODO: move package managers logic to status bar
-	}
-	else {
+export function installPackage(packageManager: string) {
+	return (...[args]: any[]) => {
+		if (!packageManager) return;
+
+		toggleTerminal();
+
 		const global = args ? '-g ' : '';
 		const runScript = args === null || args === undefined;
-		window.activeTerminal?.sendText(`${packageManagers[0]} install ${global}`, runScript);
-	}
+		window.activeTerminal?.sendText(`${packageManager} install ${global}`, runScript);
+	};
 }
 
-export function removePackage() {
-	if (!packageManagers_OLD) return;
-	const { npm, pnpm, bun, multiple } = packageManagers_OLD;
-	if (multiple) {
+export function removePackage(packageManager: string) {
+	return (...[args]: any[]) => {
+		if (!packageManager) return;
 
-	}
-	else {
-		window.activeTerminal?.sendText('npm remove ');
-	}
+		toggleTerminal();
+
+		const global = args ? '-g ' : '';
+		window.activeTerminal?.sendText(`${packageManager} remove ${global}`, false);
+	};
 }
 
-export function listPackages() {
-	if (!packageManagers_OLD) return;
-	const { npm, pnpm, bun, multiple } = packageManagers_OLD;
-	if (multiple) {
+export function listPackages(packageManager: string) {
+	return (...[args]: any[]) => {
+		if (!packageManager) return;
 
-	}
-	else {
-		window.activeTerminal?.sendText('npm list ');
-	}
+		toggleTerminal();
+
+		const global = args ? '-g ' : '';
+		window.activeTerminal?.sendText(`${packageManager} list ${global}`, true);
+	};
 }
 
 
@@ -66,5 +62,4 @@ interface PackageManager {
 	npm: boolean;
 	pnpm: boolean;
 	bun: boolean;
-	multiple: boolean;
 }
