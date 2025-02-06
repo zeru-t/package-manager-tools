@@ -1,6 +1,6 @@
 import { ExtensionContext, Disposable, languages } from 'vscode';
 
-import { AnnotationProvider } from './annotation';
+import { AnnotationProvider } from './annotation-provider';
 import { createStatusBarItems } from './status-bar';
 
 
@@ -16,7 +16,9 @@ export async function activate(context: ExtensionContext) {
 }
 
 export function deactivate() {
+
 	if (disposables)
 		disposables.forEach(item => item.dispose());
 	disposables = [];
+
 }

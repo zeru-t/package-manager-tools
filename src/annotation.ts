@@ -1,4 +1,5 @@
-import { CodeLensProvider, CodeLens, CancellationToken, TextDocument, workspace, window, Uri } from 'vscode';
+import { Uri, window, workspace } from 'vscode';
+import { Annotation } from './annotation-provider';
 
 
 const defaultAnnotations = {
@@ -6,8 +7,11 @@ const defaultAnnotations = {
 	'SCRIPT_2': 'SCRIPT_2 DESCRIPTION',
 	'SCRIPT_3': 'SCRIPT_3 DESCRIPTION'
 };
+
 let allAnnotations: Record<string, Annotation|null>;
+
 export async function getAnnotations() {
+
 	if (!allAnnotations)
 		allAnnotations = {};
 
@@ -23,8 +27,11 @@ export async function getAnnotations() {
 			allAnnotations[annotationsPath] = null;
 		}
 	}
+
 }
+
 export async function createAnnotationFiles() {
+
 	const packageFiles = await workspace.findFiles('**/package.json', '**/node_modules/**');
 	packageFiles
 		.filter(({ path }) => {
@@ -37,56 +44,22 @@ export async function createAnnotationFiles() {
 			await workspace.fs.writeFile(annotationsPath, Buffer.from(JSON.stringify(defaultAnnotations, null, 4)));
 			await window.showTextDocument(annotationsPath);
 		});
+
 }
-export function missingAnnotationFiles() { return Object.values(allAnnotations).some(exists => !exists); }
+
+export function getAnnotation(path: string) {
+	return allAnnotations[getAnnotationsPath(path)];
+}
+
+export function missingAnnotationFiles() {
+	return Object.values(allAnnotations).some(exists => !exists);
+}
+
 export function getMissingAnnotationFiles() {
-	return Object.keys(allAnnotations).map(fileName => {
-		//workspace?.workspaceFolders?.forEach(folder => fileName = fileName.replace(folder.uri.path, ''));
-		return fileName.replace('package.annotations', 'package');
-	});
+	return Object.keys(allAnnotations).map(fileName => fileName.replace('package.annotations', 'package'));
 };
-function getAnnotationsPath(path: string) { return path.replace('package.json', 'package.annotations.json'); }
 
-export class AnnotationProvider implements CodeLensProvider {
 
-	constructor() {}
-
-	public async provideCodeLenses(document: TextDocument, _token: CancellationToken) {
-
-		const annotationsPath = getAnnotationsPath(document.uri.path);
-		const annotations = allAnnotations[annotationsPath];
-		if (!annotations)
-			return [];
-
-		const documentText = document.getText();
-		const scriptsTextMatch = /(.+"scripts":\s*{[\r\n]+\s*)(.+?)(\s*})/gs.exec(documentText);
-		if (scriptsTextMatch?.length !== 4)
-			return [];
-
-		const [ _, scriptsStartText, scripts ] = scriptsTextMatch;
-		const scriptsStart = scriptsStartText.split('\n').length - 1;
-		return scripts
-			.split('\n')
-			.map((script, index) => {
-				const scriptNameMatch = /"(.+)(": ".+")/g.exec(script.trim());
-				if (scriptNameMatch?.length !== 3)
-					return null;
-
-				const [ _, scriptName ] = scriptNameMatch;
-				const annotation = annotations[scriptName];
-				if (!annotation)
-					return null;
-
-				const range = document.lineAt(scriptsStart + index).range;
-				const options = { title: annotation, command: '' };
-				return new CodeLens(range, options);
-			})
-			.filter(script => script !== null);
-	}
-
-	public resolveCodeLens(codeLens: CodeLens, _token: CancellationToken) {
-		return codeLens;
-	}
+function getAnnotationsPath(path: string) {
+	return path.replace('package.json', 'package.annotations.json');
 }
-
-type Annotation = Record<string, string>;

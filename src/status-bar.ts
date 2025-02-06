@@ -58,6 +58,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 
 		async function updateStatusBarItem() {
+
 			await getAnnotations();
 			if (missingAnnotationFiles()) {
 				const missingAnnotationFiles = getMissingAnnotationFiles();
@@ -81,6 +82,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 			else {
 				warningStatusBarItem.hide();
 			}
+
 		}
 	}
 
@@ -100,6 +102,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 
 		function addItem(packageManager: string, index: number) {
+
 			const packageManagerCommandId = `${commandId}${packageManager}`;
 			const iconPath = `${iconDir}/${packageManager}.png`;
 			const icon = `<img height="18" src="${iconPath}" alt="${packageManager}" title="${tooltipText} (${packageManager})" />`;
@@ -108,11 +111,13 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 			tooltip.appendMarkdown(`[<h1>${icon}</h1>](command:${packageManagerCommandId})\n`);
 
 			commands.registerCommand(`${packageManagerCommandId}`, commandFunction(packageManager));
+
 		}
 	}
 }
 
 async function getPackageManagers() {
+
 	const allLockFiles = await workspace.findFiles('{**/bun.lock*,**/pnpm-lock.yaml,**/package-lock.json}', '**/node_modules/**');
 	return allLockFiles.map(({ path }) => {
 		const fileName = path.split('/').pop();
@@ -126,12 +131,15 @@ async function getPackageManagers() {
 				return "npm";
 		}
 	});
+
 }
 
 function createStatusBarItem(text: string, tooltip: string|MarkdownString, command: string, priority: number) {
+
 	const terminalStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 2001 - priority);
 	terminalStatusBarItem.text = text;
 	terminalStatusBarItem.tooltip = tooltip;
 	terminalStatusBarItem.command = command;
 	return terminalStatusBarItem;
+
 }
