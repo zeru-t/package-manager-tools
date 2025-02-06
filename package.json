@@ -3,9 +3,17 @@
   "displayName": "Package Manager Tools",
   "description": "A set of tools to help with package managers",
   "version": "0.0.1",
+  "publisher": "ztessema",
+  "repository": "https://github.com/zeru-t/package-manager-tools",
+  "license": "MIT",
+  "author": {
+    "name": "ztessema",
+	"url": "https://github.com/zeru-t"
+  },
   "engines": {
     "vscode": "^1.96.0"
   },
+  "icon": "images/logo.png",
   "categories": [
     "Other"
   ],
@@ -14,14 +22,22 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [],
-	"productIconThemes": [
-		{
-			"id": "vscode-v1-icons",
-			"label": "VSCode 1.0 Icons",
-			"path": "./theme/v1-product-icon-theme.json"
+	"configuration": {
+		"type": "object",
+		"title": "Package Manager Tools",
+		"properties": {
+			"PackageManagerTools.hideMissingAnnotationsWarning": {
+				"type": "boolean",
+				"default": false,
+				"markdownDescription": "Hide the *'missing annotations'* status bar warning."
+			},
+			"PackageManagerTools.hideGenerateAnnotationsButton": {
+				"type": "boolean",
+				"default": false,
+				"markdownDescription": "Hide the *'GenerateAnnotations'* status bar button."
+			}
 		}
-	]
+	}
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

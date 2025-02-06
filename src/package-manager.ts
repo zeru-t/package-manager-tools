@@ -1,4 +1,4 @@
-import { workspace, window } from 'vscode';
+import { window } from 'vscode';
 import { toggleTerminal } from './terminal';
 
 export function installAllPackages(packageManager: string) {
