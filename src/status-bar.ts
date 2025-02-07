@@ -29,7 +29,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 	const otherStatusBarItem = await addOther();
 	const versionStatusBarItem = await addVersion();
 
-	const spacer = createStatusBarItem(7);
+	const spacer = createStatusBarItem(10);
 	spacer.text = ' ';
 	spacer.show();
 	subscriptions.push(spacer);
