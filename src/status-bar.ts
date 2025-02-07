@@ -29,6 +29,11 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 	const otherStatusBarItem = await addOther();
 	const versionStatusBarItem = await addVersion();
 
+	const spacer = createStatusBarItem(7);
+	spacer.text = ' ';
+	spacer.show();
+	subscriptions.push(spacer);
+
 	const watcher = workspace.createFileSystemWatcher('**/package*.json');
 	watcher.onDidCreate(updateStatusBarItems);
 	watcher.onDidDelete(updateStatusBarItems);
