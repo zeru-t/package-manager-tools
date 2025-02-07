@@ -34,8 +34,8 @@
 					"bun"
 				],
 				"default": "npm",
-				"description": "Package Manager to use for commands.",
-				"order": 0
+				"order": 1,
+				"markdownDescription": "Package Manager to use for commands."
 			},
 			"PackageManagerTools.buttonLabels": {
 				"type": "string",
@@ -46,60 +46,60 @@
 				],
 				"default": "both",
 				"description": "How the status bar buttons should be labeled.",
-				"order": 0
+				"order": 2
 			},
 			"PackageManagerTools.hideMissingAnnotationsWarning": {
 				"type": "boolean",
 				"default": false,
-				"order": 1,
+				"order": 3,
 				"markdownDescription": "Hide the *' Generate Annotations'* status bar warning."
 			},
 			"PackageManagerTools.hideTerminalButton": {
 				"type": "boolean",
 				"default": false,
-				"order": 2,
+				"order": 4,
 				"markdownDescription": "Hide the *'Terminal'* status bar button."
 			},
 			"PackageManagerTools.hidePackageManagerButton": {
 				"type": "boolean",
 				"default": false,
-				"order": 2,
+				"order": 5,
 				"markdownDescription": "Hide the *'Package Manager Switcher'* status bar button."
 			},
 			"PackageManagerTools.hideInstallAllButton": {
 				"type": "boolean",
 				"default": false,
-				"order": 3,
+				"order": 6,
 				"markdownDescription": "Hide the *'Install All'* status bar button."
 			},
 			"PackageManagerTools.hideInstallButton": {
 				"type": "boolean",
 				"default": false,
-				"order": 4,
+				"order": 7,
 				"markdownDescription": "Hide the *'Install'* status bar button."
 			},
 			"PackageManagerTools.hideRemoveButton": {
 				"type": "boolean",
 				"default": false,
-				"order": 5,
+				"order": 8,
 				"markdownDescription": "Hide the *'Remove Package'* status bar submenu."
 			},
 			"PackageManagerTools.hideListButton": {
 				"type": "boolean",
 				"default": false,
-				"order": 6,
+				"order": 9,
 				"markdownDescription": "Hide the *'List Packages'* status bar submenu."
 			},
 			"PackageManagerTools.hideVersionButton": {
 				"type": "boolean",
 				"default": false,
-				"order": 7,
+				"order": 10,
 				"markdownDescription": "Hide the *'Get Version'* status bar submenu."
 			},
 			"PackageManagerTools.hideUpdateVersionButton": {
 				"type": "boolean",
 				"default": false,
-				"order": 8,
+				"order": 11,
 				"markdownDescription": "Hide the *'Update App Version'* status bar button."
 			}
 		}

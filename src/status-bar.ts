@@ -224,13 +224,13 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 				tooltip.isTrusted = true;
 
 				if (!hideRemoveButton)
-					tooltip.appendMarkdown(`[<h2>$(trash) Remove Package</h2>](command:${removePackageCommandId}.${packageManager} "Remove Package (${packageManager})")\n\n---\n`);
+					tooltip.appendMarkdown(`[<h3>${getStatusBarText('trash', 'Remove Package')}</h3>](command:${removePackageCommandId}.${packageManager} "Remove Package (${packageManager})")\n\n---\n`);
 
 				if (!hideListButton)
-					tooltip.appendMarkdown(`[<h2>$(list-tree) List Packages</h2>](command:${listPackageCommandId}.${packageManager} "List Packages (${packageManager})")\n\n---\n`);
+					tooltip.appendMarkdown(`[<h3>${getStatusBarText('list-tree', 'List Packages')}</h3>](command:${listPackageCommandId}.${packageManager} "List Packages (${packageManager})")\n\n---\n`);
 
 				if (!hideVersionButton)
-					tooltip.appendMarkdown(`[<h2>$(versions) Get Version</h2>](command:${packageManagerVersionCommandId}.${packageManager} "Get Version (${packageManager})")\n`);
+					tooltip.appendMarkdown(`[<h3>${getStatusBarText('versions', 'Get Version')}</h3>](command:${packageManagerVersionCommandId}.${packageManager} "Get Version (${packageManager})")\n`);
 
 				tooltip.value = tooltip.value.replace(/\n---\n$/gm, '');
 
