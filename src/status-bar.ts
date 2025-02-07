@@ -97,16 +97,14 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 		if (packageManagers.length > 1) packageManagers.forEach(addItem);
 		else tooltip.appendMarkdown(`${tooltipText} (${packageManagers[0]})`);
 
-		const statusBarItem = createStatusBarItem(`$(${statusBarIcon}) ${statusBarText}`, tooltip, commandId);
+		const statusBarItem = createStatusBarItem(`$(${statusBarIcon}) ${statusBarText}`, tooltip, `${commandId}.${packageManagers[0]}`);
 		subscriptions.push(statusBarItem);
 		statusBarItem.show();
-
-		commands.registerCommand(commandId, commandFunction(packageManagers[0]));
 
 
 		function addItem(packageManager: string, index: number) {
 
-			const packageManagerCommandId = `${commandId}${packageManager}`;
+			const packageManagerCommandId = `${commandId}.${packageManager}`;
 			const iconPath = `${iconDir}/${packageManager}.png`;
 			const icon = `<img height="18" src="${iconPath}" alt="${packageManager}" title="${tooltipText} (${packageManager})" />`;
 
@@ -151,7 +149,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 			tooltip.appendMarkdown(`| <h3>$(${logo}) ${title}</h3> | `);
 			packageManagers.forEach(packageManager => {
 
-				const packageManagerCommandId = `${commandId}${packageManager}`;
+				const packageManagerCommandId = `${commandId}.${packageManager}`;
 				const iconPath = `${iconDir}/${packageManager}.png`;
 				const icon = `<img height="18" src="${iconPath}" alt="${packageManager}" title="${title} (${packageManager})" />`;
 
@@ -165,21 +163,53 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 	async function addVersionStatusBarItem() {
 
-		const packageFiles = await workspace.findFiles('**/package.json', '**/node_modules/**');
+		const version = await getAppVersion();
 
-		if (packageFiles.length === 0) return;
+		if (!version) return;
 
-		const packageFile = await workspace.openTextDocument(packageFiles[0].path);
-		const documentText = JSON.parse(packageFile.getText().trim());
-		const version = documentText.version;
+		const [major, minor, patch] = version.split('.').map(Number);
+		const tooltip = new MarkdownString('', true);
+		tooltip.supportHtml = true;
+		tooltip.isTrusted = true;
+		tooltip.appendMarkdown(`<h3 align="center">Update App Version</h3>\n\n`);
+		tooltip.appendMarkdown(`| <h2>${major}</h2> | · | <h2>${minor}</h2> | · | <h2>${patch}</h2> |\n`);
+		tooltip.appendMarkdown(`| :---------: | :---------: | :---------: | :---------: | :--------: |\n`);
+		addItem('major');
+		tooltip.appendMarkdown(` <h3>&nbsp;&nbsp;&nbsp;&nbsp;</h3> `);
+		addItem('minor');
+		tooltip.appendMarkdown(` <h3>&nbsp;&nbsp;&nbsp;&nbsp;</h3> `);
+		addItem('patch');
+		tooltip.appendMarkdown(`\n`);
 
-		const versionStatusBarItem = createStatusBarItem(`$(arrow-circle-up) ${version}`, 'Update App Version', updateAppVersionCommandId);
+		const versionStatusBarItem = createStatusBarItem(`$(arrow-circle-up) ${version}`, tooltip);
 		subscriptions.push(versionStatusBarItem);
 		versionStatusBarItem.show();
 
-		// TODO: move command to tooltip
 		commands.registerCommand(updateAppVersionCommandId, updateAppVersion);
 
+
+		async function getAppVersion() {
+
+			const packageFiles = await workspace.findFiles('**/package.json', '**/node_modules/**');
+			for (const { path } of packageFiles) {
+				const packageFile = await workspace.openTextDocument(path);
+				const documentText = packageFile.getText();
+
+				const version = documentText.match(/"version": "(\d.\d.\d)"/);
+
+				if (version?.[1]) return version[1];
+			}
+
+			return null;
+		}
+
+		function addItem(type: string) {
+			if (!version) return;
+			const index = type === 'major' ? 0 : type === 'minor' ? 1 : 2;
+			const newVersion = version.split('.').map(Number);
+			newVersion[index] += 1;
+			tooltip.appendMarkdown(`| [<h3>$(arrow-up) ${type.toUpperCase()} $(arrow-up)</h3>](command:${updateAppVersionCommandId}?"${type}" "Update ${type.toUpperCase()} version to ${newVersion.join('.')}") |`);
+		}
 	}
 }
 
