@@ -24,8 +24,8 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 	const annotationsWarningStatusBarItem = await addMissingAnnotationFiles();
 	const terminalStatusBarItem = await addTerminal();
-	const installAllStatusBarItem = await addStatusBarItem('Install All', 'archive', 'Install All Packages', installAllPackageCommandId, installAllPackages, 3);
-	const installStatusBarItem = await addStatusBarItem('Install', 'package', 'Install Package', installPackageCommandId, installPackage, 4);
+	const installAllStatusBarItem = await addStatusBarItem('Install All Packages', installAllPackageCommandId, installAllPackages, 3);
+	const installStatusBarItem = await addStatusBarItem('Install Package', installPackageCommandId, installPackage, 4);
 	const otherStatusBarItem = await addOther();
 	const versionStatusBarItem = await addVersion();
 
@@ -41,7 +41,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 	async function addMissingAnnotationFiles() {
 
-		const statusBarItem = createStatusBarItem('$(new-file) Generate Annotation files', 'Missing Annotation files!', 1, generateAnnotationCommandId);
+		const statusBarItem = createStatusBarItem(1, generateAnnotationCommandId);
 		statusBarItem.backgroundColor = new ThemeColor('statusBarItem.warningBackground');
 		subscriptions.push(statusBarItem);
 
@@ -55,7 +55,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 	async function addTerminal() {
 
-		const statusBarItem = createStatusBarItem('$(terminal-cmd) Terminal', 'Toggle Terminal', 2, toggleTerminalCommandId);
+		const statusBarItem = createStatusBarItem(2, toggleTerminalCommandId);
 		subscriptions.push(statusBarItem);
 
 		await addCommand(toggleTerminalCommandId, toggleTerminal);
@@ -64,7 +64,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 	}
 
-	async function addStatusBarItem(statusBarText: string, statusBarIcon: string, tooltipText: string, commandId: string, commandFunction: Function, priority: number) {
+	async function addStatusBarItem(tooltipText: string, commandId: string, commandFunction: Function, priority: number) {
 
 		const tooltip = new MarkdownString('', true);
 		tooltip.supportHtml = true;
@@ -72,7 +72,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 		if (packageManagers.length > 1) await packageManagers.forEach(addItem);
 		else tooltip.appendMarkdown(`${tooltipText} (${packageManagers[0]})`);
 
-		const statusBarItem = createStatusBarItem(`$(${statusBarIcon}) ${statusBarText}`, tooltip, priority, `${commandId}.${packageManagers[0]}`);
+		const statusBarItem = createStatusBarItem(priority, `${commandId}.${packageManagers[0]}`);
 		subscriptions.push(statusBarItem);
 		return statusBarItem;
 
@@ -93,7 +93,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 	async function addOther() {
 
-		const statusBarItem = createStatusBarItem(`$(tools) Other`, 'Other Tools', 5);
+		const statusBarItem = createStatusBarItem(5);
 		subscriptions.push(statusBarItem);
 		return statusBarItem;
 
@@ -101,7 +101,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 	async function addVersion() {
 
-		const statusBarItem = createStatusBarItem(`$(arrow-circle-up)`, 'Update App Version', 6);
+		const statusBarItem = createStatusBarItem(6);
 		subscriptions.push(statusBarItem);
 
 		await addCommand(updateAppVersionCommandId, updateAppVersion);
@@ -112,6 +112,8 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 	async function updateStatusBarItems() {
 
 		const {
+			showIcons,
+			showText,
 			hideAnnotationsWarning,
 			hideTerminalButton,
 			hideInstallAllButton,
@@ -123,9 +125,9 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 		} = getConfigurations();
 
 		updateMissingAnnotationFiles();
-		updateStatusBarItem(hideTerminalButton, terminalStatusBarItem);
-		updateStatusBarItem(hideInstallAllButton, installAllStatusBarItem);
-		updateStatusBarItem(hideInstallButton, installStatusBarItem);
+		updateStatusBarItem(hideTerminalButton, terminalStatusBarItem, 'terminal-cmd', 'Terminal', 'Toggle Terminal');
+		updateStatusBarItem(hideInstallAllButton, installAllStatusBarItem, 'archive', 'Install All', 'Install All Packages');
+		updateStatusBarItem(hideInstallButton, installStatusBarItem, 'package', 'Install', 'Install Package');
 		updateOther();
 		updateVersion();
 
@@ -148,6 +150,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 					tooltip.appendMarkdown(`</li>\n`);
 				});
 				tooltip.appendMarkdown('</ul>\n');
+				annotationsWarningStatusBarItem.text = getStatusBarText('new-file', 'Generate Annotation files');
 				annotationsWarningStatusBarItem.tooltip = tooltip;
 				if (hideAnnotationsWarning) annotationsWarningStatusBarItem.hide();
 				else annotationsWarningStatusBarItem.show();
@@ -158,7 +161,9 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 		}
 
-		async function updateStatusBarItem(hide: boolean, statusBarItem: StatusBarItem) {
+		async function updateStatusBarItem(hide: boolean, statusBarItem: StatusBarItem, icon: string, text: string, tooltip: string|MarkdownString) {
+			statusBarItem.text = getStatusBarText(icon, text);
+			statusBarItem.tooltip = tooltip;
 			if (hide) statusBarItem.hide();
 			else statusBarItem.show();
 		}
@@ -167,6 +172,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 			const hideOtherButton = hideRemoveButton && hideListButton && hideVersionButton;
 			otherStatusBarItem.tooltip = await getOtherTooltip();
+			otherStatusBarItem.text = getStatusBarText('tools', 'Other');
 			if (hideOtherButton) otherStatusBarItem.hide();
 			else otherStatusBarItem.show();
 
@@ -238,7 +244,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 				versionStatusBarItem.hide();
 			else {
 				versionStatusBarItem.tooltip = getTooltip(version);
-				versionStatusBarItem.text = `$(arrow-circle-up) ${version}`;
+				versionStatusBarItem.text = getStatusBarText('arrow-circle-up', `v${version}`);
 				versionStatusBarItem.show();
 			}
 
@@ -286,6 +292,9 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 			}
 		}
 
+		function getStatusBarText(icon: string, text: string) {
+			return `${showIcons ? `$(${icon})` : ''} ${showText ? text : ''}`.trim();
+		}
 	}
 
 	async function addCommand(commandId: string, command: (...[type]: any[]) => void) {
@@ -315,11 +324,9 @@ async function getPackageManagers() {
 
 }
 
-function createStatusBarItem(text: string, tooltip: string|MarkdownString, priority: number, command?: string) {
+function createStatusBarItem(priority: number, command?: string) {
 
 	const terminalStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 3000 - priority);
-	terminalStatusBarItem.text = text;
-	terminalStatusBarItem.tooltip = tooltip;
 	terminalStatusBarItem.command = command;
 	return terminalStatusBarItem;
 

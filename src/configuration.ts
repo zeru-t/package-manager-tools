@@ -2,7 +2,10 @@ import { workspace } from 'vscode';
 
 
 export function getConfigurations() {
+	const buttonLabels = ButtonLabels[getConfiguration<ButtonLabelsKeys>('buttonLabels') ?? 'both'];
 	return {
+		showIcons: buttonLabels !== ButtonLabels.text,
+		showText: buttonLabels !== ButtonLabels.icons,
 		hideAnnotationsWarning: getConfiguration('hideMissingAnnotationsWarning'),
 		hideTerminalButton: getConfiguration('hideTerminalButton'),
 		hideInstallAllButton: getConfiguration('hideInstallAllButton'),
@@ -14,12 +17,14 @@ export function getConfigurations() {
 	} as Configuration;
 
 
-	function getConfiguration(key: string,) {
-		return workspace.getConfiguration('PackageManagerTools').get<boolean>(key) ?? false;
+	function getConfiguration<T = boolean>(key: string) {
+		return workspace.getConfiguration('PackageManagerTools').get<T>(key);
 	}
 }
 
 interface Configuration {
+	showIcons: boolean;
+	showText: boolean;
 	hideAnnotationsWarning: boolean;
 	hideTerminalButton: boolean;
 	hideInstallAllButton: boolean;
@@ -28,4 +33,11 @@ interface Configuration {
 	hideListButton: boolean;
 	hideVersionButton: boolean;
 	hideUpdateVersionButton: boolean;
+}
+
+type ButtonLabelsKeys = keyof typeof ButtonLabels;
+enum ButtonLabels {
+	icons,
+	text,
+	both
 }
