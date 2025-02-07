@@ -1,14 +1,31 @@
 import { workspace } from 'vscode';
 
 
-function getConfiguration<T>(key: string) {
-	return workspace.getConfiguration('PackageManagerTools').get<T>(key);
+export function getConfigurations() {
+	return {
+		hideAnnotationsWarning: getConfiguration('hideMissingAnnotationsWarning'),
+		hideTerminalButton: getConfiguration('hideTerminalButton'),
+		hideInstallAllButton: getConfiguration('hideInstallAllButton'),
+		hideInstallButton: getConfiguration('hideInstallButton'),
+		hideRemoveButton: getConfiguration('hideRemoveButton'),
+		hideListButton: getConfiguration('hideListButton'),
+		hideVersionButton: getConfiguration('hideVersionButton'),
+		hideUpdateVersionButton: getConfiguration('hideUpdateVersionButton')
+	} as Configuration;
+
+
+	function getConfiguration(key: string,) {
+		return workspace.getConfiguration('PackageManagerTools').get<boolean>(key) ?? false;
+	}
 }
 
-export function hideWarning() {
-	return getConfiguration<boolean>('hideMissingAnnotationsWarning');
-}
-
-export function hideButton() {
-	return getConfiguration<boolean>('hideGenerateAnnotationsButton');
+interface Configuration {
+	hideAnnotationsWarning: boolean;
+	hideTerminalButton: boolean;
+	hideInstallAllButton: boolean;
+	hideInstallButton: boolean;
+	hideRemoveButton: boolean;
+	hideListButton: boolean;
+	hideVersionButton: boolean;
+	hideUpdateVersionButton: boolean;
 }

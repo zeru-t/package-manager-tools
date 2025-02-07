@@ -7,8 +7,8 @@
   - [x] List project packages: *[npm|pnpm|bun] [-g] ls*
   - [x] Get version: *[npm|pnpm|bun] -v*
   - [x] Move remove/list/version to submenu
-- [ ] Update project version: *npm version [patch|minor|major]*
-- [ ] add settings
+- [x] Update project version: *npm version [patch|minor|major]*
+- [x] add settings
 - [ ] new icon
 - [ ] update readme
 - [ ] update changelog

@@ -2,7 +2,7 @@ import { MarkdownString, StatusBarAlignment, StatusBarItem, ThemeColor, commands
 
 import { installAllPackages, installPackage, removePackage, listPackages, packagesManagerVersion, updateAppVersion } from './package-manager';
 import { getAnnotations, createAnnotationFiles, missingAnnotationFiles, getMissingAnnotationFiles } from './annotation';
-import { hideWarning } from './configuration';
+import { getConfigurations } from './configuration';
 import { toggleTerminal } from './terminal';
 
 
@@ -19,14 +19,15 @@ const iconDir = 'https://raw.githubusercontent.com/zeru-t/package-manager-tools/
 
 export async function createStatusBarItems(subscriptions: { dispose(): any }[]) {
 
+
 	const packageManagers = await getPackageManagers();
 
-	const warningStatusBarItem = addMissingAnnotationFiles();
-	addTerminal();
-	addStatusBarItem('Install All', 'archive', 'Install All Packages', installAllPackageCommandId, installAllPackages);
-	addStatusBarItem('Install', 'package', 'Install Package', installPackageCommandId, installPackage);
-	addOther();
-	let versionStatusBarItem = await addVersion();
+	const annotationsWarningStatusBarItem = addMissingAnnotationFiles();
+	const terminalStatusBarItem = addTerminal();
+	const installAllStatusBarItem = addStatusBarItem('Install All', 'archive', 'Install All Packages', installAllPackageCommandId, installAllPackages, 3);
+	const installStatusBarItem = addStatusBarItem('Install', 'package', 'Install Package', installPackageCommandId, installPackage, 4);
+	const otherStatusBarItem = await addOther();
+	const versionStatusBarItem = addVersion();
 
 	const watcher = workspace.createFileSystemWatcher('**/package*.json');
 	watcher.onDidCreate(updateStatusBarItems);
@@ -40,7 +41,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 	function addMissingAnnotationFiles() {
 
-		const statusBarItem = createStatusBarItem('$(new-file) Generate Annotation files', 'Missing Annotation files!', generateAnnotationCommandId, 1);
+		const statusBarItem = createStatusBarItem('$(new-file) Generate Annotation files', 'Missing Annotation files!', 1, generateAnnotationCommandId);
 		statusBarItem.backgroundColor = new ThemeColor('statusBarItem.warningBackground');
 		subscriptions.push(statusBarItem);
 
@@ -54,15 +55,16 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 	function addTerminal() {
 
-		const terminalStatusBarItem = createStatusBarItem('$(terminal-cmd) Terminal', 'Toggle Terminal', toggleTerminalCommandId);
-		subscriptions.push(terminalStatusBarItem);
-		terminalStatusBarItem.show();
+		const statusBarItem = createStatusBarItem('$(terminal-cmd) Terminal', 'Toggle Terminal', 2, toggleTerminalCommandId);
+		subscriptions.push(statusBarItem);
 
 		commands.registerCommand(toggleTerminalCommandId, toggleTerminal);
 
+		return statusBarItem;
+
 	}
 
-	function addStatusBarItem(statusBarText: string, statusBarIcon: string, tooltipText: string, commandId: string, commandFunction: Function) {
+	function addStatusBarItem(statusBarText: string, statusBarIcon: string, tooltipText: string, commandId: string, commandFunction: Function, priority: number) {
 
 		const tooltip = new MarkdownString('', true);
 		tooltip.supportHtml = true;
@@ -70,9 +72,9 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 		if (packageManagers.length > 1) packageManagers.forEach(addItem);
 		else tooltip.appendMarkdown(`${tooltipText} (${packageManagers[0]})`);
 
-		const statusBarItem = createStatusBarItem(`$(${statusBarIcon}) ${statusBarText}`, tooltip, `${commandId}.${packageManagers[0]}`);
+		const statusBarItem = createStatusBarItem(`$(${statusBarIcon}) ${statusBarText}`, tooltip, priority, `${commandId}.${packageManagers[0]}`);
 		subscriptions.push(statusBarItem);
-		statusBarItem.show();
+		return statusBarItem;
 
 
 		function addItem(packageManager: string, index: number) {
@@ -89,74 +91,42 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 		}
 	}
 
-	function addOther() {
+	async function addOther() {
 
-		const tooltip = new MarkdownString('', true);
-		tooltip.supportHtml = true;
-		tooltip.isTrusted = true;
-		if (packageManagers.length > 1) {
-			addSubmenu('Remove Package', 'trash', removePackageCommandId, removePackage);
-			tooltip.appendMarkdown(`| -----------: | :-----------: | :-----------: |\n`);
-			addSubmenu('List Packages', 'list-tree', listPackageCommandId, listPackages);
-			addSubmenu('Get Version', 'versions', packageManagerVersionCommandId, packagesManagerVersion);
-		}
-		else {
-			tooltip.appendMarkdown(`[<h2>$(trash) Remove Package</h2>](command:${removePackageCommandId} "Remove Package (${packageManagers[0]})")\n`);
-			tooltip.appendMarkdown('\n---\n');
-			tooltip.appendMarkdown(`[<h2>$(list-tree) List Packages</h2>](command:${listPackageCommandId} "List Packages (${packageManagers[0]})")\n`);
-			tooltip.appendMarkdown('\n---\n');
-			tooltip.appendMarkdown(`[<h2>$(versions) Get Version</h2>](command:${packageManagerVersionCommandId} "Get Version (${packageManagers[0]})")\n`);
-
-			commands.registerCommand(removePackageCommandId, removePackage(packageManagers[0]));
-			commands.registerCommand(listPackageCommandId, listPackages(packageManagers[0]));
-			commands.registerCommand(packageManagerVersionCommandId, packagesManagerVersion(packageManagers[0]));
-		}
-
-		const statusBarItem = createStatusBarItem(`$(tools) Other`, tooltip);
+		const statusBarItem = createStatusBarItem(`$(tools) Other`, 'Other Tools', 5);
 		subscriptions.push(statusBarItem);
-		statusBarItem.show();
+		return statusBarItem;
 
-
-		function addSubmenu(title: string, logo: string, commandId: string, command: Function) {
-
-			tooltip.appendMarkdown(`| <h3>$(${logo}) ${title}</h3> | `);
-			packageManagers.forEach(packageManager => {
-
-				const packageManagerCommandId = `${commandId}.${packageManager}`;
-				const iconPath = `${iconDir}/${packageManager}.png`;
-				const icon = `<img height="18" src="${iconPath}" alt="${packageManager}" title="${title} (${packageManager})" />`;
-
-				tooltip.appendMarkdown(` [<h1>&nbsp;&nbsp;${icon}</h1>](command:${packageManagerCommandId}) | `);
-				commands.registerCommand(packageManagerCommandId, command(packageManager));
-			});
-			tooltip.appendMarkdown(`\n`);
-
-		}
 	}
 
-	async function addVersion() {
+	function addVersion() {
 
-		const version = await getAppVersion();
-
-		if (!version) return null;
-
-		const tooltip = await getVersionTooltip(version);
-
-		const statusBarItem = createStatusBarItem(`$(arrow-circle-up) ${version}`, tooltip);
+		const statusBarItem = createStatusBarItem(`$(arrow-circle-up)`, 'Update App Version', 6);
 		subscriptions.push(statusBarItem);
-		statusBarItem.show();
 
-		const allCommands = await commands.getCommands();
-		if (!allCommands.includes(updateAppVersionCommandId))
-			commands.registerCommand(updateAppVersionCommandId, updateAppVersion);
+		commands.registerCommand(updateAppVersionCommandId, updateAppVersion);
 
 		return statusBarItem;
 	}
 
-
 	async function updateStatusBarItems() {
 
+		const {
+			hideAnnotationsWarning,
+			hideTerminalButton,
+			hideInstallAllButton,
+			hideInstallButton,
+			hideUpdateVersionButton,
+			hideRemoveButton,
+			hideListButton,
+			hideVersionButton
+		} = getConfigurations();
+
 		updateMissingAnnotationFiles();
+		updateStatusBarItem(hideTerminalButton, terminalStatusBarItem);
+		updateStatusBarItem(hideInstallAllButton, installAllStatusBarItem);
+		updateStatusBarItem(hideInstallButton, installStatusBarItem);
+		updateOther();
 		updateVersion();
 
 
@@ -178,73 +148,153 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 					tooltip.appendMarkdown(`</li>\n`);
 				});
 				tooltip.appendMarkdown('</ul>\n');
-				warningStatusBarItem.tooltip = tooltip;
-				if (hideWarning()) warningStatusBarItem.hide();
-				else warningStatusBarItem.show();
+				annotationsWarningStatusBarItem.tooltip = tooltip;
+				if (hideAnnotationsWarning) annotationsWarningStatusBarItem.hide();
+				else annotationsWarningStatusBarItem.show();
 			}
 			else {
-				warningStatusBarItem.hide();
+				annotationsWarningStatusBarItem.hide();
+			}
+
+		}
+
+		async function updateStatusBarItem(hide: boolean, statusBarItem: StatusBarItem) {
+			if (hide) statusBarItem.hide();
+			else statusBarItem.show();
+		}
+
+		async function updateOther() {
+
+			const hideOtherButton = hideRemoveButton && hideListButton && hideVersionButton;
+			otherStatusBarItem.tooltip = await getOtherTooltip();
+			if (hideOtherButton) otherStatusBarItem.hide();
+			else otherStatusBarItem.show();
+
+			async function getOtherTooltip() {
+
+				const packageManagers = await getPackageManagers();
+				const {
+					hideRemoveButton,
+					hideListButton,
+					hideVersionButton
+				} = getConfigurations();
+
+				const tooltip = new MarkdownString('', true);
+				tooltip.supportHtml = true;
+				tooltip.isTrusted = true;
+				if (packageManagers.length > 1) {
+					tooltip.appendMarkdown(`|   |   |   |\n`);
+					tooltip.appendMarkdown(`| -----------: | :-----------: | :-----------: |\n`);
+					if (!hideRemoveButton) await addSubmenu('Remove Package', 'trash', removePackageCommandId, removePackage);
+					if (!hideListButton) await addSubmenu('List Packages', 'list-tree', listPackageCommandId, listPackages);
+					if (!hideVersionButton) await addSubmenu('Get Version', 'versions', packageManagerVersionCommandId, packagesManagerVersion);
+				}
+				else {
+					if (!hideRemoveButton)
+						tooltip.appendMarkdown(`[<h2>$(trash) Remove Package</h2>](command:${removePackageCommandId} "Remove Package (${packageManagers[0]})")\n`);
+
+					if (!hideListButton) {
+						if (tooltip.value.length > 0) tooltip.appendMarkdown('\n---\n');
+						tooltip.appendMarkdown(`[<h2>$(list-tree) List Packages</h2>](command:${listPackageCommandId} "List Packages (${packageManagers[0]})")\n`);
+					}
+
+					if (!hideVersionButton) {
+						if (tooltip.value.length > 0) tooltip.appendMarkdown('\n---\n');
+						tooltip.appendMarkdown(`[<h2>$(versions) Get Version</h2>](command:${packageManagerVersionCommandId} "Get Version (${packageManagers[0]})")\n`);
+					}
+
+					const allCommands = await commands.getCommands();
+					if (!allCommands.includes(removePackageCommandId))
+						commands.registerCommand(removePackageCommandId, removePackage(packageManagers[0]));
+
+					if (!allCommands.includes(listPackageCommandId))
+						commands.registerCommand(listPackageCommandId, listPackages(packageManagers[0]));
+
+					if (!allCommands.includes(packageManagerVersionCommandId))
+						commands.registerCommand(packageManagerVersionCommandId, packagesManagerVersion(packageManagers[0]));
+				}
+
+				return tooltip;
+
+
+				async function addSubmenu(title: string, logo: string, commandId: string, command: Function) {
+
+					tooltip.appendMarkdown(`| <h3>$(${logo}) ${title}</h3> | `);
+					packageManagers.forEach(async (packageManager) => {
+
+						const packageManagerCommandId = `${commandId}.${packageManager}`;
+						const iconPath = `${iconDir}/${packageManager}.png`;
+						const icon = `<img height="18" src="${iconPath}" alt="${packageManager}" title="${title} (${packageManager})" />`;
+
+						tooltip.appendMarkdown(` [<h1>&nbsp;&nbsp;${icon}</h1>](command:${packageManagerCommandId}) | `);
+						const allCommands = await commands.getCommands();
+						if (!allCommands.includes(packageManagerCommandId))
+							commands.registerCommand(packageManagerCommandId, command(packageManager));
+					});
+					tooltip.appendMarkdown(`\n`);
+
+				}
 			}
 
 		}
 
 		async function updateVersion() {
 
-			if (!versionStatusBarItem) versionStatusBarItem = await addVersion();
-			if (!versionStatusBarItem) return;
-
 			const version = await getAppVersion();
 
-			if (!version) return;
+			if (!version || hideUpdateVersionButton)
+				versionStatusBarItem.hide();
+			else {
+				versionStatusBarItem.tooltip = getTooltip(version);
+				versionStatusBarItem.text = `$(arrow-circle-up) ${version}`;
+				versionStatusBarItem.show();
+			}
 
-			versionStatusBarItem.tooltip = await getVersionTooltip(version);
-			versionStatusBarItem.text = `$(arrow-circle-up) ${version}`;
 
+			function getTooltip(version: string) {
+
+				const [major, minor, patch] = version.split('.').map(Number);
+				const tooltip = new MarkdownString('', true);
+				tooltip.supportHtml = true;
+				tooltip.isTrusted = true;
+				tooltip.appendMarkdown(`<h3 align="center">Update App Version</h3>\n\n`);
+				tooltip.appendMarkdown(`| <h2>${major}</h2> | • | <h2>${minor}</h2> | • | <h2>${patch}</h2> |\n`);
+				tooltip.appendMarkdown(`| :---------: | :---------: | :---------: | :---------: | :--------: |\n`);
+				addItem('major');
+				tooltip.appendMarkdown(` <h3>&nbsp;&nbsp;&nbsp;&nbsp;</h3> `);
+				addItem('minor');
+				tooltip.appendMarkdown(` <h3>&nbsp;&nbsp;&nbsp;&nbsp;</h3> `);
+				addItem('patch');
+				tooltip.appendMarkdown(`\n`);
+
+				return tooltip;
+
+				function addItem(type: string) {
+					if (!version) return;
+					const index = type === 'major' ? 0 : type === 'minor' ? 1 : 2;
+					const newVersion = version.split('.').map(Number);
+					newVersion[index] += 1;
+					tooltip.appendMarkdown(`| [<h3>$(arrow-up) ${type.toUpperCase()} $(arrow-up)</h3>](command:${updateAppVersionCommandId}?"${type}" "Update ${type.toUpperCase()} version to ${newVersion.join('.')}") |`);
+				}
+			}
+
+			async function getAppVersion() {
+
+				const packageFiles = await workspace.findFiles('**/package.json', '**/node_modules/**');
+				for (const { path } of packageFiles.sort((a, b) => a.path.length - b.path.length)) {
+					const packageFile = await workspace.openTextDocument(path);
+					const documentText = packageFile.getText();
+
+					const version = documentText.match(/"version": "(\d.\d.\d)"/);
+
+					if (version?.[1]) return version[1];
+				}
+
+				return null;
+			}
 		}
 
 	}
-}
-
-async function getVersionTooltip(version: string) {
-
-	const [major, minor, patch] = version.split('.').map(Number);
-	const tooltip = new MarkdownString('', true);
-	tooltip.supportHtml = true;
-	tooltip.isTrusted = true;
-	tooltip.appendMarkdown(`<h3 align="center">Update App Version</h3>\n\n`);
-	tooltip.appendMarkdown(`| <h2>${major}</h2> | · | <h2>${minor}</h2> | · | <h2>${patch}</h2> |\n`);
-	tooltip.appendMarkdown(`| :---------: | :---------: | :---------: | :---------: | :--------: |\n`);
-	addItem('major');
-	tooltip.appendMarkdown(` <h3>&nbsp;&nbsp;&nbsp;&nbsp;</h3> `);
-	addItem('minor');
-	tooltip.appendMarkdown(` <h3>&nbsp;&nbsp;&nbsp;&nbsp;</h3> `);
-	addItem('patch');
-	tooltip.appendMarkdown(`\n`);
-
-	return tooltip;
-
-	function addItem(type: string) {
-		if (!version) return;
-		const index = type === 'major' ? 0 : type === 'minor' ? 1 : 2;
-		const newVersion = version.split('.').map(Number);
-		newVersion[index] += 1;
-		tooltip.appendMarkdown(`| [<h3>$(arrow-up) ${type.toUpperCase()} $(arrow-up)</h3>](command:${updateAppVersionCommandId}?"${type}" "Update ${type.toUpperCase()} version to ${newVersion.join('.')}") |`);
-	}
-}
-
-async function getAppVersion() {
-
-	const packageFiles = await workspace.findFiles('**/package.json', '**/node_modules/**');
-	for (const { path } of packageFiles) {
-		const packageFile = await workspace.openTextDocument(path);
-		const documentText = packageFile.getText();
-
-		const version = documentText.match(/"version": "(\d.\d.\d)"/);
-
-		if (version?.[1]) return version[1];
-	}
-
-	return null;
 }
 
 async function getPackageManagers() {
@@ -265,9 +315,9 @@ async function getPackageManagers() {
 
 }
 
-function createStatusBarItem(text: string, tooltip: string|MarkdownString, command?: string, priority: number = 0) {
+function createStatusBarItem(text: string, tooltip: string|MarkdownString, priority: number, command?: string) {
 
-	const terminalStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 2000 + priority);
+	const terminalStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 3000 - priority);
 	terminalStatusBarItem.text = text;
 	terminalStatusBarItem.tooltip = tooltip;
 	terminalStatusBarItem.command = command;

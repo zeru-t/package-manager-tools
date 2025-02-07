@@ -29,12 +29,50 @@
 			"PackageManagerTools.hideMissingAnnotationsWarning": {
 				"type": "boolean",
 				"default": false,
-				"markdownDescription": "Hide the *'missing annotations'* status bar warning."
+				"order": 0,
+				"markdownDescription": "Hide the *' Generate Annotation files'* status bar warning."
 			},
-			"PackageManagerTools.hideGenerateAnnotationsButton": {
+			"PackageManagerTools.hideTerminalButton": {
 				"type": "boolean",
 				"default": false,
-				"markdownDescription": "Hide the *'GenerateAnnotations'* status bar button."
+				"order": 1,
+				"markdownDescription": "Hide the *'Terminal'* status bar button."
+			},
+			"PackageManagerTools.hideInstallAllButton": {
+				"type": "boolean",
+				"default": false,
+				"order": 2,
+				"markdownDescription": "Hide the *'Install All'* status bar button."
+			},
+			"PackageManagerTools.hideInstallButton": {
+				"type": "boolean",
+				"default": false,
+				"order": 3,
+				"markdownDescription": "Hide the *'Install'* status bar button."
+			},
+			"PackageManagerTools.hideRemoveButton": {
+				"type": "boolean",
+				"default": false,
+				"order": 4,
+				"markdownDescription": "Hide the *'Remove Package'* status bar submenu."
+			},
+			"PackageManagerTools.hideListButton": {
+				"type": "boolean",
+				"default": false,
+				"order": 5,
+				"markdownDescription": "Hide the *'List Packages'* status bar submenu."
+			},
+			"PackageManagerTools.hideVersionButton": {
+				"type": "boolean",
+				"default": false,
+				"order": 6,
+				"markdownDescription": "Hide the *'Get Version'* status bar submenu."
+			},
+			"PackageManagerTools.hideUpdateVersionButton": {
+				"type": "boolean",
+				"default": false,
+				"order": 7,
+				"markdownDescription": "Hide the *'Update App Version'* status bar button."
 			}
 		}
 	}
