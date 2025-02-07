@@ -22,6 +22,10 @@ export function packagesManagerVersion(packageManager: string) {
 	return runCommand(packageManager, '-v', true);
 }
 
+export function updateAppVersion(item: string) {
+	return runCommand('npm', `version -m "v%s" ${item}`, false);
+}
+
 function runCommand(packageManager: string, command: string, runScript: boolean) {
 	return (...[args]: any[]) => {
 		if (!packageManager) return;

@@ -1,6 +1,6 @@
 import { MarkdownString, StatusBarAlignment, ThemeColor, commands, window, workspace } from 'vscode';
 
-import { installAllPackages, installPackage, removePackage, listPackages, packagesManagerVersion } from './package-manager';
+import { installAllPackages, installPackage, removePackage, listPackages, packagesManagerVersion, updateAppVersion } from './package-manager';
 import { getAnnotations, createAnnotationFiles, missingAnnotationFiles, getMissingAnnotationFiles } from './annotation';
 import { hideWarning } from './configuration';
 import { toggleTerminal } from './terminal';
@@ -12,6 +12,7 @@ const installPackageCommandId = 'PackageManagerTools.InstallPackage';
 const removePackageCommandId = 'PackageManagerTools.RemovePackage';
 const listPackageCommandId = 'PackageManagerTools.ListPackage';
 const packageManagerVersionCommandId = 'PackageManagerTools.PackageManagerVersion';
+const updateAppVersionCommandId = 'PackageManagerTools.UpdateAppVersion';
 const generateAnnotationCommandId = 'PackageManagerTools.GenerateAnnotationFiles';
 
 const iconDir = 'https://raw.githubusercontent.com/zeru-t/package-manager-tools/refs/heads/main/icons';
@@ -25,7 +26,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 	addStatusBarItem('Install All', 'archive', 'Install All Packages', installAllPackageCommandId, installAllPackages);
 	addStatusBarItem('Install', 'package', 'Install Package', installPackageCommandId, installPackage);
 	addOtherStatusBarItem();
-
+	addVersionStatusBarItem();
 
 
 	function addMissingAnnotationFiles() {
@@ -160,6 +161,25 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 			tooltip.appendMarkdown(`\n`);
 
 		}
+	}
+
+	async function addVersionStatusBarItem() {
+
+		const packageFiles = await workspace.findFiles('**/package.json', '**/node_modules/**');
+
+		if (packageFiles.length === 0) return;
+
+		const packageFile = await workspace.openTextDocument(packageFiles[0].path);
+		const documentText = JSON.parse(packageFile.getText().trim());
+		const version = documentText.version;
+
+		const versionStatusBarItem = createStatusBarItem(`$(arrow-circle-up) ${version}`, 'Update App Version', updateAppVersionCommandId);
+		subscriptions.push(versionStatusBarItem);
+		versionStatusBarItem.show();
+
+		// TODO: move command to tooltip
+		commands.registerCommand(updateAppVersionCommandId, updateAppVersion);
+
 	}
 }
 
