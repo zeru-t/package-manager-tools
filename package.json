@@ -26,6 +26,17 @@
 		"type": "object",
 		"title": "Package Manager Tools",
 		"properties": {
+			"PackageManagerTools.packageManager": {
+				"type": "string",
+				"enum": [
+					"npm",
+					"pnpm",
+					"bun"
+				],
+				"default": "npm",
+				"description": "Package Manager to use for commands.",
+				"order": 0
+			},
 			"PackageManagerTools.buttonLabels": {
 				"type": "string",
 				"enum": [
@@ -41,13 +52,19 @@
 				"type": "boolean",
 				"default": false,
 				"order": 1,
-				"markdownDescription": "Hide the *' Generate Annotation files'* status bar warning."
+				"markdownDescription": "Hide the *' Generate Annotations'* status bar warning."
 			},
 			"PackageManagerTools.hideTerminalButton": {
 				"type": "boolean",
 				"default": false,
 				"order": 2,
 				"markdownDescription": "Hide the *'Terminal'* status bar button."
+			},
+			"PackageManagerTools.hidePackageManagerButton": {
+				"type": "boolean",
+				"default": false,
+				"order": 2,
+				"markdownDescription": "Hide the *'Package Manager Switcher'* status bar button."
 			},
 			"PackageManagerTools.hideInstallAllButton": {
 				"type": "boolean",

@@ -1,5 +1,12 @@
 import { window } from 'vscode';
+
 import { toggleTerminal } from './terminal';
+import { updatePackageManagerConfiguration } from './configuration';
+
+
+export function updatePackageManager(...[packageManager]: any[]) {
+	updatePackageManagerConfiguration(packageManager);
+}
 
 export function installAllPackages(packageManager: string) {
 	return runCommand(packageManager, 'install', true);
