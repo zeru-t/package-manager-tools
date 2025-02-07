@@ -6,12 +6,12 @@ import { createStatusBarItems } from './status-bar';
 
 let disposables: Disposable[] = [];
 
-export async function activate(context: ExtensionContext) {
+export async function activate({ subscriptions }: ExtensionContext) {
 
-	await createStatusBarItems(context.subscriptions);
+	await createStatusBarItems(subscriptions);
 
 	const documentSelector = { language: 'json', pattern: '**/package.json' };
-	languages.registerCodeLensProvider(documentSelector, new AnnotationProvider());
+	subscriptions.push(languages.registerCodeLensProvider(documentSelector, new AnnotationProvider()));
 
 }
 

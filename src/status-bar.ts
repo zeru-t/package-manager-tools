@@ -22,12 +22,12 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 	const packageManagers = await getPackageManagers();
 
-	const annotationsWarningStatusBarItem = addMissingAnnotationFiles();
-	const terminalStatusBarItem = addTerminal();
-	const installAllStatusBarItem = addStatusBarItem('Install All', 'archive', 'Install All Packages', installAllPackageCommandId, installAllPackages, 3);
-	const installStatusBarItem = addStatusBarItem('Install', 'package', 'Install Package', installPackageCommandId, installPackage, 4);
+	const annotationsWarningStatusBarItem = await addMissingAnnotationFiles();
+	const terminalStatusBarItem = await addTerminal();
+	const installAllStatusBarItem = await addStatusBarItem('Install All', 'archive', 'Install All Packages', installAllPackageCommandId, installAllPackages, 3);
+	const installStatusBarItem = await addStatusBarItem('Install', 'package', 'Install Package', installPackageCommandId, installPackage, 4);
 	const otherStatusBarItem = await addOther();
-	const versionStatusBarItem = addVersion();
+	const versionStatusBarItem = await addVersion();
 
 	const watcher = workspace.createFileSystemWatcher('**/package*.json');
 	watcher.onDidCreate(updateStatusBarItems);
@@ -39,37 +39,37 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 
 
-	function addMissingAnnotationFiles() {
+	async function addMissingAnnotationFiles() {
 
 		const statusBarItem = createStatusBarItem('$(new-file) Generate Annotation files', 'Missing Annotation files!', 1, generateAnnotationCommandId);
 		statusBarItem.backgroundColor = new ThemeColor('statusBarItem.warningBackground');
 		subscriptions.push(statusBarItem);
 
-		subscriptions.push(commands.registerCommand(generateAnnotationCommandId, async () => {
+		await addCommand(generateAnnotationCommandId, async () => {
 			await createAnnotationFiles();
 			await updateStatusBarItems();
-		}));
+		});
 
 		return statusBarItem;
 	}
 
-	function addTerminal() {
+	async function addTerminal() {
 
 		const statusBarItem = createStatusBarItem('$(terminal-cmd) Terminal', 'Toggle Terminal', 2, toggleTerminalCommandId);
 		subscriptions.push(statusBarItem);
 
-		commands.registerCommand(toggleTerminalCommandId, toggleTerminal);
+		await addCommand(toggleTerminalCommandId, toggleTerminal);
 
 		return statusBarItem;
 
 	}
 
-	function addStatusBarItem(statusBarText: string, statusBarIcon: string, tooltipText: string, commandId: string, commandFunction: Function, priority: number) {
+	async function addStatusBarItem(statusBarText: string, statusBarIcon: string, tooltipText: string, commandId: string, commandFunction: Function, priority: number) {
 
 		const tooltip = new MarkdownString('', true);
 		tooltip.supportHtml = true;
 		tooltip.isTrusted = true;
-		if (packageManagers.length > 1) packageManagers.forEach(addItem);
+		if (packageManagers.length > 1) await packageManagers.forEach(addItem);
 		else tooltip.appendMarkdown(`${tooltipText} (${packageManagers[0]})`);
 
 		const statusBarItem = createStatusBarItem(`$(${statusBarIcon}) ${statusBarText}`, tooltip, priority, `${commandId}.${packageManagers[0]}`);
@@ -77,7 +77,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 		return statusBarItem;
 
 
-		function addItem(packageManager: string, index: number) {
+		async function addItem(packageManager: string, index: number) {
 
 			const packageManagerCommandId = `${commandId}.${packageManager}`;
 			const iconPath = `${iconDir}/${packageManager}.png`;
@@ -86,7 +86,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 			if (index > 0) tooltip.appendMarkdown('\n---\n');
 			tooltip.appendMarkdown(`[<h1>${icon}</h1>](command:${packageManagerCommandId})\n`);
 
-			commands.registerCommand(`${packageManagerCommandId}`, commandFunction(packageManager));
+			await addCommand(`${packageManagerCommandId}`, commandFunction(packageManager));
 
 		}
 	}
@@ -99,12 +99,12 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 	}
 
-	function addVersion() {
+	async function addVersion() {
 
 		const statusBarItem = createStatusBarItem(`$(arrow-circle-up)`, 'Update App Version', 6);
 		subscriptions.push(statusBarItem);
 
-		commands.registerCommand(updateAppVersionCommandId, updateAppVersion);
+		await addCommand(updateAppVersionCommandId, updateAppVersion);
 
 		return statusBarItem;
 	}
@@ -203,15 +203,9 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 						tooltip.appendMarkdown(`[<h2>$(versions) Get Version</h2>](command:${packageManagerVersionCommandId} "Get Version (${packageManagers[0]})")\n`);
 					}
 
-					const allCommands = await commands.getCommands();
-					if (!allCommands.includes(removePackageCommandId))
-						commands.registerCommand(removePackageCommandId, removePackage(packageManagers[0]));
-
-					if (!allCommands.includes(listPackageCommandId))
-						commands.registerCommand(listPackageCommandId, listPackages(packageManagers[0]));
-
-					if (!allCommands.includes(packageManagerVersionCommandId))
-						commands.registerCommand(packageManagerVersionCommandId, packagesManagerVersion(packageManagers[0]));
+					await addCommand(removePackageCommandId, removePackage(packageManagers[0]));
+					await addCommand(listPackageCommandId, listPackages(packageManagers[0]));
+					await addCommand(packageManagerVersionCommandId, packagesManagerVersion(packageManagers[0]));
 				}
 
 				return tooltip;
@@ -227,9 +221,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 						const icon = `<img height="18" src="${iconPath}" alt="${packageManager}" title="${title} (${packageManager})" />`;
 
 						tooltip.appendMarkdown(` [<h1>&nbsp;&nbsp;${icon}</h1>](command:${packageManagerCommandId}) | `);
-						const allCommands = await commands.getCommands();
-						if (!allCommands.includes(packageManagerCommandId))
-							commands.registerCommand(packageManagerCommandId, command(packageManager));
+						await addCommand(packageManagerCommandId, command(packageManager));
 					});
 					tooltip.appendMarkdown(`\n`);
 
@@ -293,6 +285,14 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 				return null;
 			}
 		}
+
+	}
+
+	async function addCommand(commandId: string, command: (...[type]: any[]) => void) {
+
+		const allCommands = await commands.getCommands();
+		if (!allCommands.includes(commandId))
+			subscriptions.push(commands.registerCommand(commandId, command));
 
 	}
 }
