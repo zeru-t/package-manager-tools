@@ -56,7 +56,9 @@ export function missingAnnotationFiles() {
 }
 
 export function getMissingAnnotationFiles() {
-	return Object.keys(allAnnotations).map(fileName => fileName.replace('package.annotations', 'package'));
+	return Object.entries(allAnnotations)
+		.filter(([_, exists]) => !exists)
+		.map(([fileName]) => fileName.replace('package.annotations', 'package'));
 };
 
 

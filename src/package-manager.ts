@@ -18,6 +18,10 @@ export function listPackages(packageManager: string) {
 	return runCommand(packageManager, listCommand, true);
 }
 
+export function packagesManagerVersion(packageManager: string) {
+	return runCommand(packageManager, '-v', true);
+}
+
 function runCommand(packageManager: string, command: string, runScript: boolean) {
 	return (...[args]: any[]) => {
 		if (!packageManager) return;

@@ -5,7 +5,7 @@
     - [x] Install package: *[npm|pnpm|bun] [-g] install \<package\>*
     - [x] Remove specific package: *[npm|pnpm|bun] [-g] remove \<package\>*
     - [x] List project packages: *[npm|pnpm|bun] [-g] ls*
-    - [ ] Get version: *[npm|pnpm|bun] -v*
+    - [x] Get version: *[npm|pnpm|bun] -v*
 - [ ] Update project version: *npm version [patch|minor|major]*
 - [ ] Move remove/list/version to submenu
 - [ ] add settings
