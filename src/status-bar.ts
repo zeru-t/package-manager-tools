@@ -1,4 +1,4 @@
-import { MarkdownString, StatusBarAlignment, ThemeColor, commands, window, workspace } from 'vscode';
+import { MarkdownString, StatusBarAlignment, StatusBarItem, ThemeColor, commands, window, workspace } from 'vscode';
 
 import { installAllPackages, installPackage, removePackage, listPackages, packagesManagerVersion, updateAppVersion } from './package-manager';
 import { getAnnotations, createAnnotationFiles, missingAnnotationFiles, getMissingAnnotationFiles } from './annotation';
@@ -21,62 +21,35 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 
 	const packageManagers = await getPackageManagers();
 
-	addMissingAnnotationFiles();
+	const warningStatusBarItem = addMissingAnnotationFiles();
 	addTerminal();
 	addStatusBarItem('Install All', 'archive', 'Install All Packages', installAllPackageCommandId, installAllPackages);
 	addStatusBarItem('Install', 'package', 'Install Package', installPackageCommandId, installPackage);
-	addOtherStatusBarItem();
-	addVersionStatusBarItem();
+	addOther();
+	let versionStatusBarItem = await addVersion();
+
+	const watcher = workspace.createFileSystemWatcher('**/package*.json');
+	watcher.onDidCreate(updateStatusBarItems);
+	watcher.onDidDelete(updateStatusBarItems);
+	watcher.onDidChange(updateStatusBarItems);
+	workspace.onDidChangeConfiguration(updateStatusBarItems);
+
+	updateStatusBarItems();
+
 
 
 	function addMissingAnnotationFiles() {
 
-		const warningStatusBarItem = createStatusBarItem('$(new-file) Generate Annotation files', 'Missing Annotation files!', generateAnnotationCommandId, 1);
-		warningStatusBarItem.backgroundColor = new ThemeColor('statusBarItem.warningBackground');
-		subscriptions.push(warningStatusBarItem);
-
-
-		const watcher = workspace.createFileSystemWatcher('**/package*.json');
-		watcher.onDidCreate(updateStatusBarItem);
-		watcher.onDidDelete(updateStatusBarItem);
-		watcher.onDidChange(updateStatusBarItem);
-		workspace.onDidChangeConfiguration(updateStatusBarItem);
+		const statusBarItem = createStatusBarItem('$(new-file) Generate Annotation files', 'Missing Annotation files!', generateAnnotationCommandId, 1);
+		statusBarItem.backgroundColor = new ThemeColor('statusBarItem.warningBackground');
+		subscriptions.push(statusBarItem);
 
 		subscriptions.push(commands.registerCommand(generateAnnotationCommandId, async () => {
 			await createAnnotationFiles();
-			await updateStatusBarItem();
+			await updateStatusBarItems();
 		}));
 
-		updateStatusBarItem();
-
-
-		async function updateStatusBarItem() {
-
-			await getAnnotations();
-			if (missingAnnotationFiles()) {
-				const missingAnnotationFiles = getMissingAnnotationFiles();
-				const tooltip = new MarkdownString('', true);
-				tooltip.supportHtml = true;
-				tooltip.isTrusted = true;
-				tooltip.appendMarkdown(`<h3>The following <i>package.json</i> files are missing <i>package.annotations.json</i> files:</h3>\n`);
-				tooltip.appendMarkdown(`<ul>\n`);
-				missingAnnotationFiles.forEach(filePath => {
-					let fileName = filePath;
-					workspace?.workspaceFolders?.forEach(folder => fileName = fileName.replace(folder.uri.path, ''));
-					tooltip.appendMarkdown(`<li>\n`);
-					tooltip.appendMarkdown(`\n[<h4>${fileName}</h4>](${filePath})\n`);
-					tooltip.appendMarkdown(`</li>\n`);
-				});
-				tooltip.appendMarkdown('</ul>\n');
-				warningStatusBarItem.tooltip = tooltip;
-				if (hideWarning()) warningStatusBarItem.hide();
-				else warningStatusBarItem.show();
-			}
-			else {
-				warningStatusBarItem.hide();
-			}
-
-		}
+		return statusBarItem;
 	}
 
 	function addTerminal() {
@@ -116,7 +89,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 		}
 	}
 
-	function addOtherStatusBarItem() {
+	function addOther() {
 
 		const tooltip = new MarkdownString('', true);
 		tooltip.supportHtml = true;
@@ -161,56 +134,117 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 		}
 	}
 
-	async function addVersionStatusBarItem() {
+	async function addVersion() {
 
 		const version = await getAppVersion();
 
-		if (!version) return;
+		if (!version) return null;
 
-		const [major, minor, patch] = version.split('.').map(Number);
-		const tooltip = new MarkdownString('', true);
-		tooltip.supportHtml = true;
-		tooltip.isTrusted = true;
-		tooltip.appendMarkdown(`<h3 align="center">Update App Version</h3>\n\n`);
-		tooltip.appendMarkdown(`| <h2>${major}</h2> | · | <h2>${minor}</h2> | · | <h2>${patch}</h2> |\n`);
-		tooltip.appendMarkdown(`| :---------: | :---------: | :---------: | :---------: | :--------: |\n`);
-		addItem('major');
-		tooltip.appendMarkdown(` <h3>&nbsp;&nbsp;&nbsp;&nbsp;</h3> `);
-		addItem('minor');
-		tooltip.appendMarkdown(` <h3>&nbsp;&nbsp;&nbsp;&nbsp;</h3> `);
-		addItem('patch');
-		tooltip.appendMarkdown(`\n`);
+		const tooltip = await getVersionTooltip(version);
 
-		const versionStatusBarItem = createStatusBarItem(`$(arrow-circle-up) ${version}`, tooltip);
-		subscriptions.push(versionStatusBarItem);
-		versionStatusBarItem.show();
+		const statusBarItem = createStatusBarItem(`$(arrow-circle-up) ${version}`, tooltip);
+		subscriptions.push(statusBarItem);
+		statusBarItem.show();
 
-		commands.registerCommand(updateAppVersionCommandId, updateAppVersion);
+		const allCommands = await commands.getCommands();
+		if (!allCommands.includes(updateAppVersionCommandId))
+			commands.registerCommand(updateAppVersionCommandId, updateAppVersion);
+
+		return statusBarItem;
+	}
 
 
-		async function getAppVersion() {
+	async function updateStatusBarItems() {
 
-			const packageFiles = await workspace.findFiles('**/package.json', '**/node_modules/**');
-			for (const { path } of packageFiles) {
-				const packageFile = await workspace.openTextDocument(path);
-				const documentText = packageFile.getText();
+		updateMissingAnnotationFiles();
+		updateVersion();
 
-				const version = documentText.match(/"version": "(\d.\d.\d)"/);
 
-				if (version?.[1]) return version[1];
+		async function updateMissingAnnotationFiles() {
+
+			await getAnnotations();
+			if (missingAnnotationFiles()) {
+				const missingAnnotationFiles = getMissingAnnotationFiles();
+				const tooltip = new MarkdownString('', true);
+				tooltip.supportHtml = true;
+				tooltip.isTrusted = true;
+				tooltip.appendMarkdown(`<h3>The following <i>package.json</i> files are missing <i>package.annotations.json</i> files:</h3>\n`);
+				tooltip.appendMarkdown(`<ul>\n`);
+				missingAnnotationFiles.forEach(filePath => {
+					let fileName = filePath;
+					workspace?.workspaceFolders?.forEach(folder => fileName = fileName.replace(folder.uri.path, ''));
+					tooltip.appendMarkdown(`<li>\n`);
+					tooltip.appendMarkdown(`\n[<h4>${fileName}</h4>](${filePath})\n`);
+					tooltip.appendMarkdown(`</li>\n`);
+				});
+				tooltip.appendMarkdown('</ul>\n');
+				warningStatusBarItem.tooltip = tooltip;
+				if (hideWarning()) warningStatusBarItem.hide();
+				else warningStatusBarItem.show();
+			}
+			else {
+				warningStatusBarItem.hide();
 			}
 
-			return null;
 		}
 
-		function addItem(type: string) {
+		async function updateVersion() {
+
+			if (!versionStatusBarItem) versionStatusBarItem = await addVersion();
+			if (!versionStatusBarItem) return;
+
+			const version = await getAppVersion();
+
 			if (!version) return;
-			const index = type === 'major' ? 0 : type === 'minor' ? 1 : 2;
-			const newVersion = version.split('.').map(Number);
-			newVersion[index] += 1;
-			tooltip.appendMarkdown(`| [<h3>$(arrow-up) ${type.toUpperCase()} $(arrow-up)</h3>](command:${updateAppVersionCommandId}?"${type}" "Update ${type.toUpperCase()} version to ${newVersion.join('.')}") |`);
+
+			versionStatusBarItem.tooltip = await getVersionTooltip(version);
+			versionStatusBarItem.text = `$(arrow-circle-up) ${version}`;
+
 		}
+
 	}
+}
+
+async function getVersionTooltip(version: string) {
+
+	const [major, minor, patch] = version.split('.').map(Number);
+	const tooltip = new MarkdownString('', true);
+	tooltip.supportHtml = true;
+	tooltip.isTrusted = true;
+	tooltip.appendMarkdown(`<h3 align="center">Update App Version</h3>\n\n`);
+	tooltip.appendMarkdown(`| <h2>${major}</h2> | · | <h2>${minor}</h2> | · | <h2>${patch}</h2> |\n`);
+	tooltip.appendMarkdown(`| :---------: | :---------: | :---------: | :---------: | :--------: |\n`);
+	addItem('major');
+	tooltip.appendMarkdown(` <h3>&nbsp;&nbsp;&nbsp;&nbsp;</h3> `);
+	addItem('minor');
+	tooltip.appendMarkdown(` <h3>&nbsp;&nbsp;&nbsp;&nbsp;</h3> `);
+	addItem('patch');
+	tooltip.appendMarkdown(`\n`);
+
+	return tooltip;
+
+	function addItem(type: string) {
+		if (!version) return;
+		const index = type === 'major' ? 0 : type === 'minor' ? 1 : 2;
+		const newVersion = version.split('.').map(Number);
+		newVersion[index] += 1;
+		tooltip.appendMarkdown(`| [<h3>$(arrow-up) ${type.toUpperCase()} $(arrow-up)</h3>](command:${updateAppVersionCommandId}?"${type}" "Update ${type.toUpperCase()} version to ${newVersion.join('.')}") |`);
+	}
+}
+
+async function getAppVersion() {
+
+	const packageFiles = await workspace.findFiles('**/package.json', '**/node_modules/**');
+	for (const { path } of packageFiles) {
+		const packageFile = await workspace.openTextDocument(path);
+		const documentText = packageFile.getText();
+
+		const version = documentText.match(/"version": "(\d.\d.\d)"/);
+
+		if (version?.[1]) return version[1];
+	}
+
+	return null;
 }
 
 async function getPackageManagers() {
