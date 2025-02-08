@@ -1,71 +1,61 @@
-# package-manager-tools README
+# Package Manager Tools
 
-This is the README for your extension "package-manager-tools". After writing up a brief description, we recommend including the following sections.
+<img src="images/logo.png" alt="Package Manager Tools logo" title="Switch Package Manager"  width="150px" />
+
+Package Manager Tools is a VS Code extension that adds a suite of tools to help with package managers, npm packages and package.json files.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### Package Manager Buttons:
 
-For example if there is an image subfolder under your extension project workspace:
+#### Buttons to switch between package managers
+<img src="images/PLACEHOLDER.gif" alt="Switch Package Manager buttons" title="Switch Package Manager" width="600px" />
 
-\!\[feature X\]\(images/feature-x.png\)
+#### Buttons to manage installed [npm](https://www.npmjs.com/) packages:
+* Install all packages
+* Install specific package
+* Remove specific package
+* List all packages
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+<img src="images/PLACEHOLDER.gif" alt="package buttons" title="package buttons" width="600px" />
 
-## Requirements
+#### Button to get package manager's currently installed version:
+<img src="images/PLACEHOLDER.gif" alt="package version button" title="package version button" width="600px" />
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+### Annotations
+#### Add user defined annotations to *package.json* file scripts
+Annotations are stored in a *package.annotations.json* file in the same directory as the *package.json* file.
 
-## Extension Settings
+The schema for the *package.annotations.json* file is the same as the [package.json](https://docs.npmjs.com/cli/v7/configuring-npm/package-json) file's "scripts" section.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+Any entry in the *package.annotations.json* file that matches a script in the *package.json* file will be displayed in the *package.json* file as an annotation:
+<br/>
+<img src="images/annotations.png" alt="sample annotation screenshot" width="600px"/>
+<br/>
 
-For example:
+You can create *package.annotations.json* files manually or you can use the Annotations Generator to create an annotation file for every *package.json* file in your workspace.
+<br/>
+<img src="images/generate.png" alt="generate annotations button" width="175px" />
 
-This extension contributes the following settings:
+#### **Note: [`Editor Code Lens`](vscode://settings/editor.codeLens) must be enabled in VS Code settings for the annotations to appear.**
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+### Other Tools:
 
-## Known Issues
+#### Buttons to automatically bump the version of the app:
+<img src="images/PLACEHOLDER.gif" alt="bump version buttons" title="bump version buttons" width="600px" />
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+#### Button to toggle the terminal:
+<img src="images/PLACEHOLDER.gif" alt="toggle terminal button" title="toggle terminal button" width="600px" />
 
-## Release Notes
 
-Users appreciate release notes as you update your extension.
+## Settings
 
-### 1.0.0
+### `"PackageManagerTools.hideMissingAnnotationsWarning"`
+This setting hides the *'missing annotations'* status bar warning.
+* Options: `true` OR `false`
+* _Default: `false`_
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+### `"PackageManagerTools.hideGenerateAnnotationsButton"`
+This setting hides the *Generate Annotations* status bar button.
+* Options: `true` OR `false`
+* _Default: `false`_
