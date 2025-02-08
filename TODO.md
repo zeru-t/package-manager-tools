@@ -10,5 +10,5 @@
 - [x] Update project version: *npm version [patch|minor|major]*
 - [x] Add settings
 - [x] Update CHANGELOG
-- [ ] Update README
-- [ ] Update icon
+- [x] Update README
+- [x] Update icon
