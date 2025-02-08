@@ -9,6 +9,6 @@
   - [x] Move remove/list/version to submenu
 - [x] Update project version: *npm version [patch|minor|major]*
 - [x] Add settings
-- [ ] New icon
+- [x] Update CHANGELOG
 - [ ] Update README
-- [ ] Update CHANGELOG
+- [ ] Update icon
