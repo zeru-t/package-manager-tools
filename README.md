@@ -191,4 +191,4 @@ See [CHANGELOG](CHANGELOG.md) for more information.
 
 <h2 id="related">Related</h2>
 
-<a href="https://github.com/zeru-t/vscode-extensions">Other VS Code extensions that I've created</a>
+<a href="https://marketplace.visualstudio.com/publishers/ztessema">Other VS Code extensions that I've created</a>
