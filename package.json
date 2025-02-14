@@ -2,7 +2,7 @@
   "name": "package-manager-tools",
   "displayName": "Package Manager Tools",
   "description": "A set of tools to help with package managers",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "ztessema",
   "repository": "https://github.com/zeru-t/package-manager-tools",
   "license": "MIT",
