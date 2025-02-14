@@ -122,6 +122,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 		await addCommand(updateAppVersionCommandId, updateAppVersion);
 
 		return statusBarItem;
+
 	}
 
 	async function updateStatusBarItems() {
@@ -180,6 +181,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 		}
 
 		async function updatePackageManagerStatusBarItem() {
+
 			packageManagerStatusBarItem.text = getStatusBarText('symbol-color', packageManager);
 			const tooltip = new MarkdownString('', true);
 			tooltip.supportHtml = true;
@@ -195,6 +197,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 			if (hidePackageManagerButton) packageManagerStatusBarItem.hide();
 			else packageManagerStatusBarItem.show();
 
+
 			function getIcon(packageManager: string) {
 				const image = `<h3><img height="18" src="${iconDir}/${packageManager}.png" alt="${packageManager}" title="${packageManager}" /></h3>`;
 				return `\n\n[${image}](command:${changePackageManagerCommandId}?"${packageManager}")\n`;
@@ -202,11 +205,13 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 		}
 
 		async function updateStatusBarItem(hide: boolean, statusBarItem: StatusBarItem, icon: string, text: string, tooltip: string|MarkdownString, commandId?: string) {
+
 			statusBarItem.text = getStatusBarText(icon, text);
 			statusBarItem.tooltip = tooltip;
 			if (commandId) statusBarItem.command = commandId;
 			if (hide) statusBarItem.hide();
 			else statusBarItem.show();
+
 		}
 
 		async function updateOther() {
@@ -216,6 +221,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 			otherStatusBarItem.text = getStatusBarText('tools', 'Other');
 			if (hideOtherButton) otherStatusBarItem.hide();
 			else otherStatusBarItem.show();
+
 
 			async function getOtherTooltip() {
 
@@ -239,8 +245,8 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 				await addCommand(`${packageManagerVersionCommandId}.${packageManager}`, packagesManagerVersion(packageManager));
 
 				return tooltip;
-			}
 
+			}
 		}
 
 		async function updateVersion() {
@@ -275,11 +281,14 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 				return tooltip;
 
 				function addItem(type: string) {
+
 					if (!version) return;
+
 					const index = type === 'major' ? 0 : type === 'minor' ? 1 : 2;
 					const newVersion = version.split('.').map(Number);
 					newVersion[index] += 1;
 					tooltip.appendMarkdown(`| [<h3>$(arrow-up) ${type.toUpperCase()} $(arrow-up)</h3>](command:${updateAppVersionCommandId}?"${type}" "Update ${type.toUpperCase()} version to ${newVersion.join('.')}") |`);
+
 				}
 			}
 

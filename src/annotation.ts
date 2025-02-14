@@ -1,4 +1,5 @@
 import { Uri, window, workspace } from 'vscode';
+
 import { Annotation } from './annotation-provider';
 
 
@@ -34,17 +35,25 @@ export async function createAnnotationFiles() {
 
 	const packageFiles = await workspace.findFiles('**/package.json', '**/node_modules/**');
 	packageFiles
-		.filter(({ path }) => {
-			const annotationsPath = getAnnotationsPath(path);
-			const annotations = allAnnotations[annotationsPath];
-			return annotations === null;
-		})
-		.forEach(async ({ path: packageFilePath }) => {
-			const annotationsPath = Uri.file(getAnnotationsPath(packageFilePath));
-			await workspace.fs.writeFile(annotationsPath, Buffer.from(JSON.stringify(defaultAnnotations, null, 4)));
-			await window.showTextDocument(annotationsPath);
-		});
+		.filter(hasAnnotations)
+		.forEach(createAndShowAnnotations);
 
+
+	function hasAnnotations({ path }: Uri) {
+
+		const annotationsPath = getAnnotationsPath(path);
+		const annotations = allAnnotations[annotationsPath];
+		return annotations === null;
+
+	}
+
+	async function createAndShowAnnotations({ path: packageFilePath }: Uri) {
+
+		const annotationsPath = Uri.file(getAnnotationsPath(packageFilePath));
+		await workspace.fs.writeFile(annotationsPath, Buffer.from(JSON.stringify(defaultAnnotations, null, 4)));
+		await window.showTextDocument(annotationsPath);
+
+	}
 }
 
 export function getAnnotation(path: string) {

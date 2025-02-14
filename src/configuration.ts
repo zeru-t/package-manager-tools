@@ -1,7 +1,8 @@
-import { workspace } from 'vscode';
+import { workspace, ConfigurationScope } from 'vscode';
 
 
 export function getConfigurations() {
+
 	const buttonLabels = ButtonLabels[getConfiguration<ButtonLabelsKeys>('buttonLabels') ?? 'both'];
 	return {
 		packageManager: getConfiguration('packageManager'),

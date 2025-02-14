@@ -1,6 +1,4 @@
-import { window } from 'vscode';
-
-import { toggleTerminal } from './terminal';
+import { showTerminal } from './terminal';
 import { updatePackageManagerConfiguration } from './configuration';
 
 
@@ -35,8 +33,12 @@ export function updateAppVersion(...[type]: any[]) {
 
 function runCommand(packageManager: string, command: string, runScript: boolean) {
 	return (...[args]: any[]) => {
+
 		if (!packageManager) return;
-		toggleTerminal();
-		window.activeTerminal?.sendText(`${packageManager} ${command} `, runScript);
+
+		const terminal = showTerminal();
+		if (terminal)
+			terminal.sendText(`${packageManager} ${command} `, runScript);
+
 	};
 }

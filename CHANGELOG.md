@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## v1.0.2 (2/14/2025)
+
+### Changed
+
+- Fixed issue with terminal actions not working when terminal is not active
+- Terminal button will now close the terminal if it is already open
+- Added needed files back in to the built package
+
+
 ## v1.0.1 (2/8/2025)
 
 ### Changed
