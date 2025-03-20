@@ -16,4 +16,11 @@ export function showTerminal() {
 
 }
 
+export function newTerminal() {
+	const newTerm = window.createTerminal();
+	newTerm.show();
+	commands.executeCommand('workbench.action.terminal.focus');
+	return newTerm;
+}
+
 function getTerminal() { return window.activeTerminal || window.createTerminal(); }

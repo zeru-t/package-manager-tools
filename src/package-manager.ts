@@ -1,4 +1,5 @@
-import { showTerminal } from './terminal';
+import { ShellExecution, Task, TaskScope, tasks } from 'vscode';
+import { newTerminal } from './terminal';
 import { updatePackageManagerConfiguration } from './configuration';
 
 
@@ -7,38 +8,56 @@ export function updatePackageManager(...[packageManager]: any[]) {
 }
 
 export function installAllPackages(packageManager: string) {
-	return runCommand(packageManager, 'install', true);
+	return runTask(packageManager, 'install');
 }
 
 export function installPackage(packageManager: string) {
-	return runCommand(packageManager, 'install', false);
+	return runCommand(packageManager, 'install');
 }
 
 export function removePackage(packageManager: string) {
-	return runCommand(packageManager, 'remove', false);
+	return runCommand(packageManager, 'remove');
 }
 
 export function listPackages(packageManager: string) {
 	const listCommand = packageManager === 'bun' ? 'pm ls' : 'list';
-	return runCommand(packageManager, listCommand, true);
+	return runTask(packageManager, listCommand);
 }
 
 export function packagesManagerVersion(packageManager: string) {
-	return runCommand(packageManager, '-v', true);
+	return runTask(packageManager, '-v');
 }
 
 export function updateAppVersion(...[type]: any[]) {
-	return runCommand('npm', `version -m "v%s" ${type}`, true)();
+	return runTask('npm', `version -m "v%s" ${type}`)();
 }
 
-function runCommand(packageManager: string, command: string, runScript: boolean) {
+function runCommand(packageManager: string, command: string) {
 	return (...[args]: any[]) => {
 
 		if (!packageManager) return;
 
-		const terminal = showTerminal();
+		const terminal = newTerminal();
 		if (terminal)
-			terminal.sendText(`${packageManager} ${command} `, runScript);
+			terminal.sendText(`${packageManager} ${command} `, false);
+
+	};
+}
+
+function runTask(packageManager: string, command: string) {
+	return (...[args]: any[]) => {
+
+		if (!packageManager) return;
+
+		tasks.executeTask(
+			new Task(
+				{ type: 'package-manager-tools' },
+				TaskScope.Workspace,
+				command,
+				'package-manager-tools',
+				new ShellExecution(`${packageManager} ${command}`)
+			)
+		);
 
 	};
 }
