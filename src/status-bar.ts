@@ -299,7 +299,7 @@ export async function createStatusBarItems(subscriptions: { dispose(): any }[]) 
 					const packageFile = await workspace.openTextDocument(path);
 					const documentText = packageFile.getText();
 
-					const version = documentText.match(/"version": "(\d.\d.\d)"/);
+					const version = documentText.match(/"version": "(\d+.\d+.\d+)"/);
 
 					if (version?.[1]) return version[1];
 				}
