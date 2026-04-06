@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed issue with app version detection logic
 
 
-## v1.0.3 (3/20/2025)
+## v1.1.0 (3/20/2025)
 
 ### Changed
 
